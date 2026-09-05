@@ -121,11 +121,6 @@ export default function LoginPage() {
             </button>
           </div>
         </div>
-
-        <p className="text-center text-xs text-slate-500 mt-6 flex items-center justify-center gap-1.5 font-medium">
-          <ShieldCheck className="w-4 h-4 text-emerald-600" />
-          Protected with .NET 10 JWT Authentication & BCrypt
-        </p>
       </div>
     </div>
   );
