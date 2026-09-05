@@ -110,9 +110,29 @@ if (app.Environment.IsDevelopment())
                .WithDefaultHttpClient(ScalarTarget.JavaScript, ScalarClient.Fetch);
     });
 
-    // Auto-redirect root "/" directly to Scalar API Reference
+    // Auto-redirect root "/" directly to Scalar API Reference in development
     app.MapGet("/", () => Results.Redirect("/scalar/v1"));
 }
+else
+{
+    // Friendly root response for cloud hosting / Render
+    app.MapGet("/", () => Results.Ok(new 
+    { 
+        service = "Mana Vibe Prints API", 
+        status = "Online", 
+        environment = "Production",
+        healthEndpoint = "/health",
+        apiHealthEndpoint = "/api/health"
+    }));
+}
+
+// 9. Dedicated Health Check Endpoints (for Render, Docker, and monitoring)
+app.MapGet("/health", () => Results.Ok(new 
+{ 
+    status = "Healthy", 
+    timestamp = DateTime.UtcNow, 
+    service = "ManaVibePrints.API" 
+}));
 
 app.UseCors("AllowAllLocalOrigins");
 
