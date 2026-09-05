@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/ManaVibePrints.API/ManaVibePrints.API.csproj" />
+    <Project Path="src/ManaVibePrints.Application/ManaVibePrints.Application.csproj" />
+    <Project Path="src/ManaVibePrints.Domain/ManaVibePrints.Domain.csproj" />
+    <Project Path="src/ManaVibePrints.Infrastructure/ManaVibePrints.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ManaVibePrints.Tests/ManaVibePrints.Tests.csproj" />
+  </Folder>
+</Solution>
