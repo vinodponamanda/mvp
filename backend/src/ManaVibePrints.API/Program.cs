@@ -63,18 +63,12 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
-// 5. CORS Configuration (Allows Storefront & Admin Vite dev servers)
+// 5. CORS Configuration (Allows Storefront & Admin Vite dev servers and Render URLs)
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAllLocalOrigins", policy =>
     {
-        policy.WithOrigins(
-                "http://localhost:3000",
-                "http://localhost:3001",
-                "http://localhost:3002",
-                "http://localhost:3003",
-                "http://localhost:5173",
-                "http://localhost:5174")
+        policy.SetIsOriginAllowed(origin => true)
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
