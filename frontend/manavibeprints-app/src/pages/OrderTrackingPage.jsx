@@ -16,6 +16,7 @@ import {
   ArrowLeft,
   Package 
 } from 'lucide-react';
+import api from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { useStore } from '../context/StoreContext';
 
@@ -44,7 +45,7 @@ export default function OrderTrackingPage() {
     try {
       setLoading(true);
       setError(null);
-      const cleanNum = searchNum.trim();
+      const cleanNum = searchNum.trim().replace(/^#+/, '');
       const res = await api.get(`/orders/lookup?orderNumber=${encodeURIComponent(cleanNum)}`);
       setOrder(res.data);
     } catch (err) {

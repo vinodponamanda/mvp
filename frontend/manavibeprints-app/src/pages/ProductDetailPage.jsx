@@ -113,24 +113,42 @@ export default function ProductDetailPage() {
     setZoomPosition({ x: Math.max(0, Math.min(100, x)), y: Math.max(0, Math.min(100, y)) });
   };
 
-  const basePrice = product.basePrice + (selectedMaterial?.priceAdjustment || 0) + (selectedSize?.priceAdjustment || 0);
+  const fabricAdjustment = selectedMaterial?.priceAdjustment || 0;
+  const sizeAdjustment = selectedSize?.priceAdjustment || 0;
+  const basePrice = product.basePrice + fabricAdjustment + sizeAdjustment;
 
-  // Volume tier rates
-  const tier5 = Math.round(basePrice * 0.85);
-  const tier20 = Math.round(basePrice * 0.70);
-  const tier50 = Math.round(basePrice * 0.55);
+  // Dynamic Volume Pricing Tiers configured by Admin in Admin Portal
+  const configuredTiers = (product.volumeTiers || [])
+    .slice()
+    .sort((a, b) => a.minQuantity - b.minQuantity);
+
+  const bestTier = configuredTiers.length > 0 ? configuredTiers[configuredTiers.length - 1] : null;
+  const bestTierPrice = bestTier ? (bestTier.unitPrice + fabricAdjustment + sizeAdjustment) : null;
 
   // Direct Buy Now / Add to Cart handler (for non-customizable products)
   const handleAddToCart = () => {
+    let activeUnitPrice = basePrice;
+    if (configuredTiers.length > 0) {
+      const matchedTier = configuredTiers.find(
+        (t) => quantity >= t.minQuantity && (!t.maxQuantity || quantity <= t.maxQuantity)
+      );
+      if (matchedTier) {
+        activeUnitPrice = matchedTier.unitPrice + fabricAdjustment + sizeAdjustment;
+      }
+    }
+
     addItem({
       productId: product.id,
       productName: product.name,
       colorName: selectedColor?.colorName || 'Default',
       sizeLabel: selectedSize?.sizeLabel || 'Standard',
       materialName: selectedMaterial?.materialName || '',
+      fabricAdjustment,
+      sizeAdjustment,
+      volumeTiers: product.volumeTiers || [],
       quantity,
-      unitPrice: basePrice,
-      totalPrice: basePrice * quantity,
+      unitPrice: activeUnitPrice,
+      totalPrice: activeUnitPrice * quantity,
       previewMockupUrl: activeMockupUrl,
       customizations: []
     });
@@ -283,10 +301,23 @@ export default function ProductDetailPage() {
             </div>
             <div className="text-right">
               <span className="text-[10px] uppercase font-bold text-emerald-600 tracking-wider block">Volume Bulk Rate</span>
-              <span className="text-xl font-black text-slate-900 font-['Outfit']">
-                From ₹{tier50}/pc
-              </span>
-              <span className="text-[10px] text-slate-500 font-semibold block">on 50+ pieces</span>
+              {bestTier ? (
+                <>
+                  <span className="text-xl font-black text-slate-900 font-['Outfit']">
+                    From ₹{bestTierPrice}/pc
+                  </span>
+                  <span className="text-[10px] text-slate-500 font-semibold block">
+                    on {bestTier.maxQuantity ? `${bestTier.minQuantity}–${bestTier.maxQuantity}` : `${bestTier.minQuantity}+`} pieces
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span className="text-sm font-bold text-slate-800 font-['Outfit']">
+                    Custom Bulk Rates
+                  </span>
+                  <span className="text-[10px] text-slate-500 font-semibold block">Inquire on WhatsApp</span>
+                </>
+              )}
             </div>
           </div>
 
@@ -311,34 +342,67 @@ export default function ProductDetailPage() {
             onSelectSize={setSelectedSize}
           />
 
-          {/* Volume Tier Table */}
-          <div className="space-y-2 pt-2">
-            <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-              <TrendingDown className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Automatic Volume Pricing Tiers:</span>
-            </span>
-            <div className="grid grid-cols-4 gap-2 text-center text-xs">
-              <div className="p-2 rounded-xl bg-slate-100 border border-slate-200">
-                <span className="text-[10px] font-bold text-slate-500 block">1-4 pcs</span>
-                <span className="font-black text-slate-900 font-mono">₹{basePrice}</span>
-              </div>
-              <div className="p-2 rounded-xl bg-orange-50 border border-orange-200">
-                <span className="text-[10px] font-bold text-orange-700 block">5-19 pcs</span>
-                <span className="font-black text-orange-800 font-mono">₹{tier5}</span>
-                <span className="text-[9px] text-orange-600 block font-bold">-15%</span>
-              </div>
-              <div className="p-2 rounded-xl bg-amber-50 border border-amber-200">
-                <span className="text-[10px] font-bold text-amber-700 block">20-49 pcs</span>
-                <span className="font-black text-amber-800 font-mono">₹{tier20}</span>
-                <span className="text-[9px] text-amber-600 block font-bold">-30%</span>
-              </div>
-              <div className="p-2 rounded-xl bg-emerald-50 border border-emerald-200">
-                <span className="text-[10px] font-bold text-emerald-700 block">50+ pcs</span>
-                <span className="font-black text-emerald-800 font-mono">₹{tier50}</span>
-                <span className="text-[9px] text-emerald-600 block font-bold">-45%</span>
+          {/* Volume Tier Table - Rendered dynamically from Admin Portal settings */}
+          {configuredTiers.length > 0 && (
+            <div className="space-y-2 pt-2">
+              <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                <TrendingDown className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Automatic Volume Pricing Tiers:</span>
+              </span>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs">
+                {/* Standard Retail Tier if first tier starts > 1 */}
+                {configuredTiers[0].minQuantity > 1 && (
+                  <div className="p-2.5 rounded-xl bg-slate-100 border border-slate-200">
+                    <span className="text-[10px] font-bold text-slate-500 block">
+                      1–{configuredTiers[0].minQuantity - 1} pcs
+                    </span>
+                    <span className="font-black text-slate-900 font-mono text-sm">₹{basePrice}</span>
+                    <span className="text-[9px] text-slate-400 block font-medium">Standard</span>
+                  </div>
+                )}
+
+                {/* Admin Configured Tiers */}
+                {configuredTiers.map((tier, idx) => {
+                  const tierPrice = tier.unitPrice + fabricAdjustment + sizeAdjustment;
+                  const discountPercent = tier.discountPercentage > 0
+                    ? tier.discountPercentage
+                    : (product.basePrice > 0 && tier.unitPrice < product.basePrice
+                        ? Math.round(((product.basePrice - tier.unitPrice) / product.basePrice) * 100)
+                        : 0);
+
+                  const themeColors = [
+                    'bg-orange-50 border-orange-200 text-orange-800 text-orange-700 text-orange-600',
+                    'bg-amber-50 border-amber-200 text-amber-800 text-amber-700 text-amber-600',
+                    'bg-emerald-50 border-emerald-200 text-emerald-800 text-emerald-700 text-emerald-600',
+                    'bg-sky-50 border-sky-200 text-sky-800 text-sky-700 text-sky-600',
+                    'bg-purple-50 border-purple-200 text-purple-800 text-purple-700 text-purple-600'
+                  ];
+                  const chosenTheme = themeColors[idx % themeColors.length].split(' ');
+
+                  return (
+                    <div
+                      key={tier.id || idx}
+                      className={`p-2.5 rounded-xl border ${chosenTheme[0]} ${chosenTheme[1]}`}
+                    >
+                      <span className={`text-[10px] font-bold block ${chosenTheme[3]}`}>
+                        {tier.maxQuantity ? `${tier.minQuantity}–${tier.maxQuantity} pcs` : `${tier.minQuantity}+ pcs`}
+                      </span>
+                      <span className={`font-black font-mono text-sm ${chosenTheme[2]}`}>
+                        ₹{tierPrice}
+                      </span>
+                      {discountPercent > 0 ? (
+                        <span className={`text-[9px] block font-bold ${chosenTheme[4]}`}>
+                          -{discountPercent}%
+                        </span>
+                      ) : (
+                        <span className="text-[9px] text-slate-400 block font-medium">Tier Price</span>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
-          </div>
+          )}
 
           {/* Primary Action Button */}
           <div className="pt-4 border-t border-slate-200 space-y-3">

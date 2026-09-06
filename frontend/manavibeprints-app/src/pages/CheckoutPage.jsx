@@ -106,7 +106,7 @@ export default function CheckoutPage() {
         gpsLongitude: deliveryInfo?.gpsLng || null,
         customerLatitude: deliveryInfo?.gpsLat || null,
         customerLongitude: deliveryInfo?.gpsLng || null,
-        paymentMethod: formData.paymentMethod || 'UPI',
+        paymentMethod: 'Cash_On_Delivery',
         items: items.map((item) => ({
           productId: item.productId,
           colorName: item.colorName,
@@ -277,24 +277,24 @@ export default function CheckoutPage() {
 
           {/* Payment Method Selector */}
           <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-4">
-            <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-              <CreditCard className="w-4 h-4 text-orange-600" /> Select Payment Method
-            </h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <CreditCard className="w-4 h-4 text-orange-600" /> Select Payment Method
+              </h2>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200">
+                Cash on Delivery (COD) Only
+              </span>
+            </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-              <label
-                className={`flex items-start gap-3 p-4 rounded-2xl border cursor-pointer transition-all ${
-                  formData.paymentMethod === 'Cash_On_Delivery'
-                    ? 'border-orange-600 bg-orange-50/50 ring-1 ring-orange-600'
-                    : 'border-slate-200 hover:border-slate-300 bg-white'
-                }`}
-              >
+              {/* COD - Active & Selected */}
+              <div className="flex items-start gap-3 p-4 rounded-2xl border border-orange-600 bg-orange-50/50 ring-1 ring-orange-600">
                 <input
                   type="radio"
                   name="paymentMethod"
                   value="Cash_On_Delivery"
-                  checked={formData.paymentMethod === 'Cash_On_Delivery'}
-                  onChange={() => setFormData({ ...formData, paymentMethod: 'Cash_On_Delivery' })}
+                  checked={true}
+                  readOnly
                   className="mt-0.5 text-orange-600 focus:ring-orange-500"
                 />
                 <div>
@@ -303,30 +303,26 @@ export default function CheckoutPage() {
                   </div>
                   <p className="text-[11px] text-slate-500 mt-0.5">Pay in cash or UPI scan at your doorstep upon delivery.</p>
                 </div>
-              </label>
+              </div>
 
-              <label
-                className={`flex items-start gap-3 p-4 rounded-2xl border cursor-pointer transition-all ${
-                  formData.paymentMethod === 'UPI_QR'
-                    ? 'border-orange-600 bg-orange-50/50 ring-1 ring-orange-600'
-                    : 'border-slate-200 hover:border-slate-300 bg-white'
-                }`}
-              >
+              {/* UPI QR - Disabled */}
+              <div className="flex items-start gap-3 p-4 rounded-2xl border border-slate-200 bg-slate-50/80 opacity-60 cursor-not-allowed">
                 <input
                   type="radio"
                   name="paymentMethod"
                   value="UPI_QR"
-                  checked={formData.paymentMethod === 'UPI_QR'}
-                  onChange={() => setFormData({ ...formData, paymentMethod: 'UPI_QR' })}
-                  className="mt-0.5 text-orange-600 focus:ring-orange-500"
+                  disabled
+                  checked={false}
+                  className="mt-0.5 text-slate-400 cursor-not-allowed"
                 />
                 <div>
-                  <div className="font-bold text-slate-900 flex items-center gap-1.5">
-                    <QrCode className="w-4 h-4 text-purple-600" /> Instant UPI QR Scan
+                  <div className="font-bold text-slate-500 flex items-center gap-1.5">
+                    <QrCode className="w-4 h-4 text-slate-400" /> Instant UPI QR Scan
+                    <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-slate-200 text-slate-600">Disabled</span>
                   </div>
-                  <p className="text-[11px] text-slate-500 mt-0.5">Pay via PhonePe, GPay, Paytm, or BHIM with instant order approval.</p>
+                  <p className="text-[11px] text-slate-400 mt-0.5">Direct online UPI prepayment currently paused. We accept only Cash on Delivery (COD).</p>
                 </div>
-              </label>
+              </div>
             </div>
           </div>
 
