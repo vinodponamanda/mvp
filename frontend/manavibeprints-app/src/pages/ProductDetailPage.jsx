@@ -40,6 +40,9 @@ export default function ProductDetailPage() {
   const [selectedSize, setSelectedSize] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState('specs'); // 'specs', 'bulk', 'delivery'
+  const [activeMockupIndex, setActiveMockupIndex] = useState(0);
+  const [isZoomed, setIsZoomed] = useState(false);
+  const [zoomPosition, setZoomPosition] = useState({ x: 50, y: 50 });
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -59,6 +62,12 @@ export default function ProductDetailPage() {
     };
     fetchProduct();
   }, [id]);
+
+  // Reset active mockup index when color selection changes
+  useEffect(() => {
+    setActiveMockupIndex(0);
+    setIsZoomed(false);
+  }, [selectedColor]);
 
   if (loading) {
     return (
@@ -82,16 +91,6 @@ export default function ProductDetailPage() {
   const mockups = (selectedColor?.mockups && selectedColor.mockups.length > 0)
     ? selectedColor.mockups.filter(m => m.mockupUrl)
     : (product.featuredImageUrl ? [{ mockupUrl: product.featuredImageUrl, position: 'Front' }] : []);
-
-  const [activeMockupIndex, setActiveMockupIndex] = useState(0);
-  const [isZoomed, setIsZoomed] = useState(false);
-  const [zoomPosition, setZoomPosition] = useState({ x: 50, y: 50 });
-
-  // Reset active mockup index when color selection changes
-  useEffect(() => {
-    setActiveMockupIndex(0);
-    setIsZoomed(false);
-  }, [selectedColor]);
 
   const currentMockup = mockups[activeMockupIndex] || mockups[0];
   const activeMockupUrl = currentMockup?.mockupUrl;

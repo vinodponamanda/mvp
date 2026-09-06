@@ -15,7 +15,8 @@ export default function ColorSwatchPicker({ colors, selectedColor, onSelectColor
       <div className="flex flex-wrap items-center gap-2.5">
         {colors.map((color) => {
           const isSelected = selectedColor?.id === color.id || selectedColor?.colorName === color.colorName;
-          const isLight = color.hexCode.toLowerCase() === '#ffffff' || color.hexCode.toLowerCase() === '#fff';
+          const hex = (color.hexCode || '').toLowerCase();
+          const isLight = hex === '#ffffff' || hex === '#fff';
 
           return (
             <button
